@@ -8,11 +8,7 @@ public struct SDKVariant {
 
 // MARK: - Decoding
 
-extension SDKVariant: CustomDecodableRPCPayload {
-    public init(values: [MessagePackValue], indexPath: IndexPath) throws {
-        self.rawValue = try values.parseString(indexPath: indexPath)
-    }
-}
+extension SDKVariant: Decodable {}
 
 extension SDKVariant: CustomStringConvertible {
     public var description: String { rawValue }

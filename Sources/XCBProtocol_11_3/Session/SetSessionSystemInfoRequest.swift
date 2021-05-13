@@ -11,20 +11,23 @@ public struct SetSessionSystemInfoRequest {
     public let nativeArchitecture: String
 }
 
-extension SetSessionSystemInfoRequest: CustomDecodableRPCPayload {
-    public init(values: [MessagePackValue], indexPath: IndexPath) throws {
-        guard values.count == 5 else { throw RPCPayloadDecodingError.invalidCount(values.count, indexPath: indexPath) }
+extension SetSessionSystemInfoRequest: Decodable {
+    public init(from decoder: Decoder) throws {
+        var container = try decoder.unkeyedContainer()
         
         // Name is at index 0
-        let argsIndexPath = indexPath + IndexPath(index: 1)
-        let args = try values.parseArray(indexPath: argsIndexPath)
+        _ = try container.decode(String.self)
 
-        self.sessionHandle = try args.parseString(indexPath: argsIndexPath + IndexPath(index: 0))
-        self.osMajorVersion = try args.parseUInt64(indexPath: argsIndexPath + IndexPath(index: 1))
-        self.osMinorVersion = try args.parseUInt64(indexPath: argsIndexPath + IndexPath(index: 2))
+        var nestedContainer = try container.nestedUnkeyedContainer()
+        self.sessionHandle = try nestedContainer.decode()
+        self.osMajorVersion = try nestedContainer.decode()
+        self.osMinorVersion = try nestedContainer.decode()
+        try nestedContainer.throwIfNotAtEnd()
         
-        self.osPatchVersion = try values.parseUInt64(indexPath: indexPath + IndexPath(index: 2))
-        self.xcodeBuildVersion = try values.parseString(indexPath: indexPath + IndexPath(index: 3))
-        self.nativeArchitecture = try values.parseString(indexPath: indexPath + IndexPath(index: 4))
+        self.osPatchVersion = try container.decode()
+        self.xcodeBuildVersion = try container.decode()
+        self.nativeArchitecture = try container.decode()
+
+        try container.throwIfNotAtEnd()
     }
 }

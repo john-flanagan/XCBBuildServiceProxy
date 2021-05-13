@@ -29,18 +29,7 @@ public struct BuildOperationTargetInfo {
 
 // MARK: - Decoding
 
-extension BuildOperationTargetInfo: DecodableRPCPayload {
-    public init(args: [MessagePackValue], indexPath: IndexPath) throws {
-        guard args.count == 6 else { throw RPCPayloadDecodingError.invalidCount(args.count, indexPath: indexPath) }
-        
-        self.name = try args.parseString(indexPath: indexPath + IndexPath(index: 0))
-        self.typeName = try args.parseString(indexPath: indexPath + IndexPath(index: 1))
-        self.projectInfo = try args.parseObject(indexPath: indexPath + IndexPath(index: 2))
-        self.configurationName = try args.parseString(indexPath: indexPath + IndexPath(index: 3))
-        self.configurationIsDefault = try args.parseBool(indexPath: indexPath + IndexPath(index: 4))
-        self.sdkRoot = try args.parseString(indexPath: indexPath + IndexPath(index: 5))
-    }
-}
+extension BuildOperationTargetInfo: Decodable {}
 
 // MARK: - Encoding
 

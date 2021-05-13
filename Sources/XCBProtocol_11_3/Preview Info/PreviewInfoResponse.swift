@@ -20,19 +20,7 @@ extension PreviewInfoResponse: ResponsePayloadConvertible {
 
 // MARK: - Decoding
 
-extension PreviewInfoResponse: DecodableRPCPayload {
-    public init(args: [MessagePackValue], indexPath: IndexPath) throws {
-        guard args.count == 2 else { throw RPCPayloadDecodingError.invalidCount(args.count, indexPath: indexPath) }
-        
-        self.targetGUID = try args.parseString(indexPath: indexPath + IndexPath(index: 0))
-        
-        let infosIndexPath = indexPath + IndexPath(index: 1)
-        let infosArray = try args.parseArray(indexPath: infosIndexPath)
-        self.infos = try infosArray.enumerated().map { index, _ in
-            try infosArray.parseObject(indexPath: infosIndexPath + IndexPath(index: index))
-        }
-    }
-}
+extension PreviewInfoResponse: Decodable {}
 
 // MARK: - Encoding
 

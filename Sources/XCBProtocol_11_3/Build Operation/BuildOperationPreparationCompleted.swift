@@ -14,9 +14,7 @@ extension BuildOperationPreparationCompleted: ResponsePayloadConvertible {
 
 // MARK: - Decoding
 
-extension BuildOperationPreparationCompleted: CustomDecodableRPCPayload {
-    public init(values: [MessagePackValue], indexPath: IndexPath) {}
-}
+extension BuildOperationPreparationCompleted: Decodable {}
 
 extension BuildOperationPreparationCompleted: CustomEncodableRPCPayload {
     public func encode() -> MessagePackValue {

@@ -29,33 +29,33 @@ extension RequestPayload: XCBProtocol.RequestPayload {
     public static func unknownRequest(values: [MessagePackValue]) -> Self {
         return .unknownRequest(.init(values: values))
     }
-    
-    public init(values: [MessagePackValue], indexPath: IndexPath) throws {
-        let name = try values.parseString(indexPath: indexPath + IndexPath(index: 0))
-        let bodyIndexPath = indexPath + IndexPath(index: 1)
-        
+
+    public init(from decoder: Decoder) throws {
+        var container = try decoder.unkeyedContainer()
+        let name = try container.decode(String.self)
+
         switch name {
-        case "CREATE_SESSION": self = .createSession(try values.parseObject(indexPath: bodyIndexPath))
-        case "TRANSFER_SESSION_PIF_REQUEST": self = .transferSessionPIFRequest(try values.parseObject(indexPath: bodyIndexPath))
-        case "SET_SESSION_SYSTEM_INFO": self = .setSessionSystemInfo(try values.parseObject(indexPath: indexPath))
-        case "SET_SESSION_USER_INFO": self = .setSessionUserInfo(try values.parseObject(indexPath: bodyIndexPath))
-            
+        case "CREATE_SESSION": self = .createSession(try container.decode())
+        case "TRANSFER_SESSION_PIF_REQUEST": self = .transferSessionPIFRequest(try container.decode())
+        case "SET_SESSION_SYSTEM_INFO": self = .setSessionSystemInfo(try container.decode()) // TODO: Was this really supposed to be `indexPath` before?
+        case "SET_SESSION_USER_INFO": self = .setSessionUserInfo(try container.decode())
+
         case "CREATE_BUILD":
-            let data = try values.parseBinary(indexPath: bodyIndexPath)
+            let data = try container.decode(Data.self)
             self = .createBuildRequest(try JSONDecoder().decode(CreateBuildRequest.self, from: data))
-            
-        case "BUILD_START": self = .buildStartRequest(try values.parseObject(indexPath: bodyIndexPath))
-        case "BUILD_CANCEL": self = .buildCancelRequest(try values.parseObject(indexPath: bodyIndexPath))
-            
+
+        case "BUILD_START": self = .buildStartRequest(try container.decode())
+        case "BUILD_CANCEL": self = .buildCancelRequest(try container.decode())
+
         case "INDEXING_INFO_REQUESTED":
-            let data = try values.parseBinary(indexPath: bodyIndexPath)
+            let data = try container.decode(Data.self)
             self = .indexingInfoRequest(try JSONDecoder().decode(IndexingInfoRequest.self, from: data))
-            
+
         case "PREVIEW_INFO_REQUESTED":
-            let data = try values.parseBinary(indexPath: bodyIndexPath)
+            let data = try container.decode(Data.self)
             self = .previewInfoRequest(try JSONDecoder().decode(PreviewInfoRequest.self, from: data))
-            
-        default: self = .unknownRequest(.init(values: values))
+
+        default: self = .unknownRequest(.init(values: try container.decode()))
         }
     }
     

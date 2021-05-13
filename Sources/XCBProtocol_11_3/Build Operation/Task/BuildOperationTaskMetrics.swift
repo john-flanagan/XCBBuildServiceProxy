@@ -26,17 +26,7 @@ public struct BuildOperationTaskMetrics {
 
 // MARK: - Decoding
 
-extension BuildOperationTaskMetrics: DecodableRPCPayload {
-    public init(args: [MessagePackValue], indexPath: IndexPath) throws {
-        guard args.count == 5 else { throw RPCPayloadDecodingError.invalidCount(args.count, indexPath: indexPath) }
-        
-        self.utime = try args.parseUInt64(indexPath: indexPath + IndexPath(index: 0))
-        self.stime = try args.parseUInt64(indexPath: indexPath + IndexPath(index: 1))
-        self.maxRSS = try args.parseUInt64(indexPath: indexPath + IndexPath(index: 2))
-        self.wcStartTime = try args.parseUInt64(indexPath: indexPath + IndexPath(index: 3))
-        self.wcDuration = try args.parseUInt64(indexPath: indexPath + IndexPath(index: 4))
-    }
-}
+extension BuildOperationTaskMetrics: Decodable {}
 
 // MARK: - Encoding
 

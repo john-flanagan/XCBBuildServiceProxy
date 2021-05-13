@@ -57,30 +57,9 @@ extension BuildOperationTaskStarted: ResponsePayloadConvertible {
 
 // MARK: - Decoding
 
-extension BuildOperationTaskStarted: DecodableRPCPayload {
-    public init(args: [MessagePackValue], indexPath: IndexPath) throws {
-        guard args.count == 4 else { throw RPCPayloadDecodingError.invalidCount(args.count, indexPath: indexPath) }
-        
-        self.taskID = try args.parseInt64(indexPath: indexPath + IndexPath(index: 0))
-        self.targetID = try args.parseInt64(indexPath: indexPath + IndexPath(index: 1))
-        self.parentTaskID = try args.parseOptionalInt64(indexPath: indexPath + IndexPath(index: 2))
-        self.taskDetails = try args.parseObject(indexPath: indexPath + IndexPath(index: 3))
-    }
-}
+extension BuildOperationTaskStarted: Decodable {}
 
-extension BuildOperationTaskStarted.TaskDetails: DecodableRPCPayload {
-    public init(args: [MessagePackValue], indexPath: IndexPath) throws {
-        guard args.count == 7 else { throw RPCPayloadDecodingError.invalidCount(args.count, indexPath: indexPath) }
-        
-        self.taskName = try args.parseString(indexPath: indexPath + IndexPath(index: 0))
-        self.signature = try args.parseBinary(indexPath: indexPath + IndexPath(index: 1))
-        self.ruleInfo = try args.parseString(indexPath: indexPath + IndexPath(index: 2))
-        self.executionDescription = try args.parseString(indexPath: indexPath + IndexPath(index: 3))
-        self.commandLineDisplayString = try args.parseString(indexPath: indexPath + IndexPath(index: 4))
-        self.interestingPath = try args.parseOptionalString(indexPath: indexPath + IndexPath(index: 5))
-        self.serializedDiagnosticsPaths = try args.parseStringArray(indexPath: indexPath + IndexPath(index: 6))
-    }
-}
+extension BuildOperationTaskStarted.TaskDetails: Decodable {}
 
 // MARK: - Encoding
 

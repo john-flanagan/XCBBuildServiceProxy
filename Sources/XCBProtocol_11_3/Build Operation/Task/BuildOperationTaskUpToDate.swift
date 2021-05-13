@@ -16,15 +16,7 @@ extension BuildOperationTaskUpToDate: ResponsePayloadConvertible {
 
 // MARK: - Decoding
 
-extension BuildOperationTaskUpToDate: DecodableRPCPayload {
-    public init(args: [MessagePackValue], indexPath: IndexPath) throws {
-        guard args.count == 3 else { throw RPCPayloadDecodingError.invalidCount(args.count, indexPath: indexPath) }
-        
-        self.taskGUID = try args.parseBinary(indexPath: indexPath + IndexPath(index: 0))
-        self.targetID = try args.parseInt64(indexPath: indexPath + IndexPath(index: 1))
-        self.unknown = try args.parseUnknown(indexPath: indexPath + IndexPath(index: 2))
-    }
-}
+extension BuildOperationTaskUpToDate: Decodable {}
 
 // MARK: - Encoding
 

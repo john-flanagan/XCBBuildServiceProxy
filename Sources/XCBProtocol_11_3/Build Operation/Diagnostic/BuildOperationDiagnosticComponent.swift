@@ -10,30 +10,34 @@ public enum BuildOperationDiagnosticComponent {
 
 // MARK: - Decoding
 
-extension BuildOperationDiagnosticComponent: DecodableRPCPayload {
-    public init(args: [MessagePackValue], indexPath: IndexPath) throws {
-        guard args.count == 2 else { throw RPCPayloadDecodingError.invalidCount(args.count, indexPath: indexPath) }
-        
-        let rawValue = try args.parseInt64(indexPath: indexPath + IndexPath(index: 0))
-        
+extension BuildOperationDiagnosticComponent: Decodable {
+    public init(from decoder: Decoder) throws {
+        var container = try decoder.unkeyedContainer()
+
+        let rawValue = try container.decode(Int64.self)
+
         switch rawValue {
         case 0:
-            let taskArgs = try args.parseArray(indexPath: indexPath + IndexPath(index: 1))
-        
+            var taskContainer = try container.nestedUnkeyedContainer()
+
             self = .task(
-                taskID: try taskArgs.parseInt64(indexPath: indexPath + IndexPath(indexes: [1, 0])),
-                targetID: try taskArgs.parseInt64(indexPath: indexPath + IndexPath(indexes: [1, 1]))
+                taskID: try taskContainer.decode(),
+                targetID: try taskContainer.decode()
             )
             
+            try taskContainer.throwIfNotAtEnd()
+
         case 1:
-            self = .unknown(try args.parseUnknown(indexPath: indexPath + IndexPath(index: 1)))
-            
+            self = .unknown(try container.decode())
+
         case 2:
             self = .global
-            
+
         default:
-            throw RPCPayloadDecodingError.incorrectValueType(indexPath: indexPath + IndexPath(index: 0), expectedType: Self.self)
+            throw DecodingError.unknownRawValue(rawValue, at: decoder.codingPath, forType: Self.self)
         }
+
+        try container.throwIfNotAtEnd()
     }
 }
 

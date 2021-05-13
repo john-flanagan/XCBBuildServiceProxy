@@ -40,22 +40,7 @@ public struct PreviewInfo {
 
 // MARK: - Decoding
 
-extension PreviewInfo: DecodableRPCPayload {
-    public init(args: [MessagePackValue], indexPath: IndexPath) throws {
-        guard args.count == 10 else { throw RPCPayloadDecodingError.invalidCount(args.count, indexPath: indexPath) }
-        
-        self.sdkVariant = try args.parseString(indexPath: indexPath + IndexPath(index: 0))
-        self.unknown = try args.parseUnknown(indexPath: indexPath + IndexPath(index: 1))
-        self.buildVariant = try args.parseString(indexPath: indexPath + IndexPath(index: 2))
-        self.architecture = try args.parseString(indexPath: indexPath + IndexPath(index: 3))
-        self.compileCommandLine = try args.parseStringArray(indexPath: indexPath + IndexPath(index: 4))
-        self.linkCommandLine = try args.parseStringArray(indexPath: indexPath + IndexPath(index: 5))
-        self.thunkSourceFile = try args.parseString(indexPath: indexPath + IndexPath(index: 6))
-        self.thunkObjectFile = try args.parseString(indexPath: indexPath + IndexPath(index: 7))
-        self.thunkLibrary = try args.parseString(indexPath: indexPath + IndexPath(index: 8))
-        self.pifGUID = try args.parseString(indexPath: indexPath + IndexPath(index: 9))
-    }
-}
+extension PreviewInfo: Decodable {}
 
 // MARK: - Encoding
 

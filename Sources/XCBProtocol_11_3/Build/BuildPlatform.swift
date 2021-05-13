@@ -14,15 +14,7 @@ public enum BuildPlatform: String {
 
 // MARK: - Decoding
 
-extension BuildPlatform: CustomDecodableRPCPayload {
-    public init(values: [MessagePackValue], indexPath: IndexPath) throws {
-        guard let parsed = Self(rawValue: try values.parseString(indexPath: indexPath)) else {
-            throw RPCPayloadDecodingError.incorrectValueType(indexPath: indexPath, expectedType: Self.self)
-        }
-
-        self = parsed
-    }
-}
+extension BuildPlatform: Decodable {}
 
 extension BuildPlatform: CustomStringConvertible {
     public var description: String { rawValue }

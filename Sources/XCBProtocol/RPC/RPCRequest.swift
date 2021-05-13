@@ -33,7 +33,7 @@ extension RPCRequest {
     init(_ packet: RPCPacket) {
         let payload: Payload
         do {
-            payload = try packet.body.parseObject(indexPath: IndexPath())
+            payload = try MessagePackDecoder().decode(Payload.self, from: packet.body)
         } catch {
             logger.error("Failed parsing RequestPayload received from Xcode: \(error)\nValues: \(packet.body)")
             

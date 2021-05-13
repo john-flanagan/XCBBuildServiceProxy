@@ -22,15 +22,7 @@ extension BuildOperationEnded: ResponsePayloadConvertible {
 
 // MARK: - Decoding
 
-extension BuildOperationEnded: DecodableRPCPayload {
-    public init(args: [MessagePackValue], indexPath: IndexPath) throws {
-        guard args.count == 3 else { throw RPCPayloadDecodingError.invalidCount(args.count, indexPath: indexPath) }
-        
-        self.buildNumber = try args.parseInt64(indexPath: indexPath + IndexPath(index: 0))
-        self.status = try args.parseObject(indexPath: indexPath + IndexPath(index: 1))
-        self.unknown = try args.parseUnknown(indexPath: indexPath + IndexPath(index: 2))
-    }
-}
+extension BuildOperationEnded: Decodable {}
 
 // MARK: - Encoding
 

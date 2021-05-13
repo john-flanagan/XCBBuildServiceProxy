@@ -20,14 +20,9 @@ extension BuildOperationReportPathMap: ResponsePayloadConvertible {
 
 // MARK: - Decoding
 
-extension BuildOperationReportPathMap: DecodableRPCPayload {
-    public init(args: [MessagePackValue], indexPath: IndexPath) throws {
-        guard args.count == 2 else { throw RPCPayloadDecodingError.invalidCount(args.count, indexPath: indexPath) }
-        
-        self.unknown1 = try args.parseUnknown(indexPath: indexPath + IndexPath(index: 0))
-        self.unknown2 = try args.parseUnknown(indexPath: indexPath + IndexPath(index: 1))
-    }
-}
+extension BuildOperationReportPathMap: Decodable {}
+
+// MARK: - Encoding
 
 extension BuildOperationReportPathMap: EncodableRPCPayload {
     public func encode() -> [MessagePackValue] {

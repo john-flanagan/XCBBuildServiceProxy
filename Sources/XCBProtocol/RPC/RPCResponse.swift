@@ -49,7 +49,7 @@ extension RPCResponse {
     init(_ packet: RPCPacket) {
         let payload: Payload
         do {
-            payload = try packet.body.parseObject(indexPath: IndexPath())
+            payload = try MessagePackDecoder().decode(Payload.self, from: packet.body)
         } catch {
             logger.error("Failed parsing ResponsePayload received from XCBBuildService: \(error)\nValues: \(packet.body)")
             
@@ -70,10 +70,4 @@ extension RPCPacket {
             body: response.payload.encode()
         )
     }
-}
-
-enum ResponseParsingError: Error {
-    case nameNotFound
-    case indexOutOfBounds(indexPath: IndexPath)
-    case incorrectValueType(indexPath: IndexPath, expectedType: Any.Type)
 }

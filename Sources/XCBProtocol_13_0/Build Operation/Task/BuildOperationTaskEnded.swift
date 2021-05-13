@@ -24,16 +24,7 @@ extension BuildOperationTaskEnded: ResponsePayloadConvertible {
 
 // MARK: - Decoding
 
-extension BuildOperationTaskEnded: DecodableRPCPayload {
-    public init(args: [MessagePackValue], indexPath: IndexPath) throws {
-        guard args.count == 4 else { throw RPCPayloadDecodingError.invalidCount(args.count, indexPath: indexPath) }
-        
-        self.taskID = try args.parseInt64(indexPath: indexPath + IndexPath(index: 0))
-        self.status = try args.parseObject(indexPath: indexPath + IndexPath(index: 1))
-        self.skippedErrorsFromSerializedDiagnostics = try args.parseBool(indexPath: indexPath + IndexPath(index: 2))
-        self.metrics = try args.parseOptionalObject(indexPath: indexPath + IndexPath(index: 3))
-    }
-}
+extension BuildOperationTaskEnded: Decodable {}
 
 // MARK: - Encoding
 

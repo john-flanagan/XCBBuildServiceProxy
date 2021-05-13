@@ -16,15 +16,7 @@ public struct BuildOperationProjectInfo {
 
 // MARK: - Decoding
 
-extension BuildOperationProjectInfo: DecodableRPCPayload {
-    public init(args: [MessagePackValue], indexPath: IndexPath) throws {
-        guard args.count == 3 else { throw RPCPayloadDecodingError.invalidCount(args.count, indexPath: indexPath) }
-        
-        self.name = try args.parseString(indexPath: indexPath + IndexPath(index: 0))
-        self.path = try args.parseString(indexPath: indexPath + IndexPath(index: 1))
-        self.isPackage = try args.parseBool(indexPath: indexPath + IndexPath(index: 2))
-    }
-}
+extension BuildOperationProjectInfo: Decodable {}
 
 // MARK: - Encoding
 

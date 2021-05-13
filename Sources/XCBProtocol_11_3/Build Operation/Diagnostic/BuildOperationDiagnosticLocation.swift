@@ -10,28 +10,32 @@ public enum BuildOperationDiagnosticLocation {
 
 // MARK: - Decoding
 
-extension BuildOperationDiagnosticLocation: DecodableRPCPayload {
-    public init(args: [MessagePackValue], indexPath: IndexPath) throws {
-        guard args.count == 2 else { throw RPCPayloadDecodingError.invalidCount(args.count, indexPath: indexPath) }
-        
-        let rawValue = try args.parseInt64(indexPath: indexPath + IndexPath(index: 0))
+extension BuildOperationDiagnosticLocation: Decodable {
+    public init(from decoder: Decoder) throws {
+        var container = try decoder.unkeyedContainer()
+
+        let rawValue = try container.decode(Int64.self)
         
         switch rawValue {
         case 0:
-            self = .alternativeMessage(try args.parseString(indexPath: indexPath + IndexPath(index: 1)))
+            self = .alternativeMessage(try container.decode())
             
         case 1:
-            let locationArgs = try args.parseArray(indexPath: indexPath + IndexPath(index: 1))
+            var nestedContainer = try container.nestedUnkeyedContainer()
             
             self = .locationContext(
-                file: try locationArgs.parseString(indexPath: indexPath + IndexPath(indexes: [1, 0])),
-                line: try locationArgs.parseInt64(indexPath: indexPath + IndexPath(indexes: [1, 1])),
-                column: try locationArgs.parseInt64(indexPath: indexPath + IndexPath(indexes: [1, 2]))
+                file: try nestedContainer.decode(),
+                line: try nestedContainer.decode(),
+                column: try nestedContainer.decode()
             )
+
+            try nestedContainer.throwIfNotAtEnd()
             
         default:
-            throw RPCPayloadDecodingError.incorrectValueType(indexPath: indexPath + IndexPath(index: 0), expectedType: Self.self)
+            throw DecodingError.unknownRawValue(rawValue, at: decoder.codingPath, forType: Self.self)
         }
+
+        try container.throwIfNotAtEnd()
     }
 }
 

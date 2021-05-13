@@ -10,16 +10,3 @@ public struct SettingsOverrides: Decodable {
     public let toolchainOverride: String? // e.g. "org.swift.515120200323a"
 }
 
-// MARK: - Decoding
-
-extension SettingsOverrides: DecodableRPCPayload {
-    public init(args: [MessagePackValue], indexPath: IndexPath) throws {
-        guard args.count == 5 else { throw RPCPayloadDecodingError.invalidCount(args.count, indexPath: indexPath) }
-        
-        self.synthesized = try args.parseMap(indexPath: indexPath + IndexPath(index: 0))
-        self.commandLine = try args.parseMap(indexPath: indexPath + IndexPath(index: 1))
-        self.commandLineConfig = try args.parseMap(indexPath: indexPath + IndexPath(index: 2))
-        self.environmentConfig = try args.parseMap(indexPath: indexPath + IndexPath(index: 3))
-        self.toolchainOverride = try args.parseOptionalString(indexPath: indexPath + IndexPath(index: 4))
-    }
-}

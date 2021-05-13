@@ -18,13 +18,7 @@ extension StringResponse: ResponsePayloadConvertible {
 
 // MARK: - Decoding
 
-extension StringResponse: DecodableRPCPayload {
-    public init(args: [MessagePackValue], indexPath: IndexPath) throws {
-        guard args.count == 1 else { throw RPCPayloadDecodingError.invalidCount(args.count, indexPath: indexPath) }
-        
-        self.value = try args.parseString(indexPath: indexPath + IndexPath(index: 0))
-    }
-}
+extension StringResponse: Decodable {}
 
 // MARK: - Encoding
 

@@ -18,13 +18,7 @@ extension BoolResponse: ResponsePayloadConvertible {
 
 // MARK: - Decoding
 
-extension BoolResponse: DecodableRPCPayload {
-    public init(args: [MessagePackValue], indexPath: IndexPath) throws {
-        guard args.count == 1 else { throw RPCPayloadDecodingError.invalidCount(args.count, indexPath: indexPath) }
-        
-        self.value = try args.parseBool(indexPath: indexPath + IndexPath(index: 0))
-    }
-}
+extension BoolResponse: Decodable {}
 
 // MARK: - Encoding
 

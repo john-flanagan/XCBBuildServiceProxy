@@ -14,7 +14,7 @@ extension PingResponse: ResponsePayloadConvertible {
 
 // MARK: - Decoding
 
-extension PingResponse: CustomDecodableRPCPayload {
+extension PingResponse: Decodable {
     public init(values: [MessagePackValue], indexPath: IndexPath) {}
 }
 

@@ -30,22 +30,23 @@ extension RequestPayload: XCBProtocol.RequestPayload {
         return .unknownRequest(.init(values: values))
     }
     
-    public init(values: [MessagePackValue], indexPath: IndexPath) throws {
-        let name = try values.parseString(indexPath: indexPath + IndexPath(index: 0))
-        let bodyIndexPath = indexPath + IndexPath(index: 1)
+    public init(from decoder: Decoder) throws {
+        var container = try decoder.unkeyedContainer()
+        
+        let name = try container.decode(String.self)
         
         switch name {
-        case "CREATE_SESSION": self = .createSession(try values.parseObject(indexPath: bodyIndexPath))
-        case "TRANSFER_SESSION_PIF_REQUEST": self = .transferSessionPIFRequest(try values.parseObject(indexPath: bodyIndexPath))
-        case "SET_SESSION_SYSTEM_INFO": self = .setSessionSystemInfo(try values.parseObject(indexPath: indexPath))
-        case "SET_SESSION_USER_INFO": self = .setSessionUserInfo(try values.parseObject(indexPath: bodyIndexPath))
-        case "CREATE_BUILD": self = .createBuildRequest(try values.parseObject(indexPath: bodyIndexPath))
-        case "BUILD_START": self = .buildStartRequest(try values.parseObject(indexPath: bodyIndexPath))
-        case "BUILD_CANCEL": self = .buildCancelRequest(try values.parseObject(indexPath: bodyIndexPath))
-        case "INDEXING_INFO_REQUESTED": self = .indexingInfoRequest(try values.parseObject(indexPath: bodyIndexPath))
-        case "PREVIEW_INFO_REQUESTED": self = .previewInfoRequest(try values.parseObject(indexPath: bodyIndexPath))
+        case "CREATE_SESSION": self = .createSession(try container.decode())
+        case "TRANSFER_SESSION_PIF_REQUEST": self = .transferSessionPIFRequest(try container.decode())
+        case "SET_SESSION_SYSTEM_INFO": self = .setSessionSystemInfo(try container.decode())
+        case "SET_SESSION_USER_INFO": self = .setSessionUserInfo(try container.decode())
+        case "CREATE_BUILD": self = .createBuildRequest(try container.decode())
+        case "BUILD_START": self = .buildStartRequest(try container.decode())
+        case "BUILD_CANCEL": self = .buildCancelRequest(try container.decode())
+        case "INDEXING_INFO_REQUESTED": self = .indexingInfoRequest(try container.decode())
+        case "PREVIEW_INFO_REQUESTED": self = .previewInfoRequest(try container.decode())
             
-        default: self = .unknownRequest(.init(values: values))
+        default: self = .unknownRequest(.init(values: try container.decode([MessagePackValue].self)))
         }
     }
     

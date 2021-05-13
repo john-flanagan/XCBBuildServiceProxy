@@ -20,14 +20,7 @@ extension PlanningOperationWillStart: ResponsePayloadConvertible {
 
 // MARK: - Decoding
 
-extension PlanningOperationWillStart: DecodableRPCPayload {
-    public init(args: [MessagePackValue], indexPath: IndexPath) throws {
-        guard args.count == 2 else { throw RPCPayloadDecodingError.invalidCount(args.count, indexPath: indexPath) }
-        
-        self.sessionHandle = try args.parseString(indexPath: indexPath + IndexPath(index: 0))
-        self.guid = try args.parseString(indexPath: indexPath + IndexPath(index: 1))
-    }
-}
+extension PlanningOperationWillStart: Decodable {}
 
 // MARK: - Encoding
 

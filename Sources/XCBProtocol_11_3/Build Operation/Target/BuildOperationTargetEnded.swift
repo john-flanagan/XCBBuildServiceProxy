@@ -18,13 +18,7 @@ extension BuildOperationTargetEnded: ResponsePayloadConvertible {
 
 // MARK: - Decoding
 
-extension BuildOperationTargetEnded: DecodableRPCPayload {
-    public init(args: [MessagePackValue], indexPath: IndexPath) throws {
-        guard args.count == 1 else { throw RPCPayloadDecodingError.invalidCount(args.count, indexPath: indexPath) }
-        
-        self.targetID = try args.parseInt64(indexPath: indexPath + IndexPath(index: 0))
-    }
-}
+extension BuildOperationTargetEnded: Decodable {}
 
 // MARK: - Encoding
 

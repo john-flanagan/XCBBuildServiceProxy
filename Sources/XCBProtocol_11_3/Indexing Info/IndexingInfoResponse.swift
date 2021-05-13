@@ -20,14 +20,7 @@ extension IndexingInfoResponse: ResponsePayloadConvertible {
 
 // MARK: - Decoding
 
-extension IndexingInfoResponse: DecodableRPCPayload {
-    public init(args: [MessagePackValue], indexPath: IndexPath) throws {
-        guard args.count == 2 else { throw RPCPayloadDecodingError.invalidCount(args.count, indexPath: indexPath) }
-        
-        self.targetGUID = try args.parseString(indexPath: indexPath + IndexPath(index: 0))
-        self.data = try args.parseBinary(indexPath: indexPath + IndexPath(index: 1))
-    }
-}
+extension IndexingInfoResponse: Decodable {}
 
 // MARK: - Encoding
 

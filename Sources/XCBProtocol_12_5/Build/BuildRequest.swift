@@ -26,36 +26,30 @@ public struct BuildRequest {
 
 // MARK: - Decoding
 
-extension BuildRequest: DecodableRPCPayload {
-    public init(args: [MessagePackValue], indexPath: IndexPath) throws {
-        guard args.count == 19 else { throw RPCPayloadDecodingError.invalidCount(args.count, indexPath: indexPath) }
+extension BuildRequest: Decodable {
+    public init(from decoder: Decoder) throws {
+        var container = try decoder.unkeyedContainer()
 
-        self.parameters = try args.parseObject(indexPath: indexPath + IndexPath(index: 0))
+        self.parameters = try container.decode()
+        self.configuredTargets = try container.decode()
+        self.continueBuildingAfterErrors = try container.decode()
+        self.hideShellScriptEnvironment = try container.decode()
+        self.useParallelTargets = try container.decode()
+        self.useImplicitDependencies = try container.decode()
+        self.useDryRun = try container.decode()
+        self.showNonLoggedProgress = try container.decode()
+        self.buildPlanDiagnosticsDirPath = try container.decode()
+        self.buildCommand = try container.decode()
+        self.schemeCommand = try container.decode()
+        self.buildOnlyTheseFiles = try container.decode()
+        self.buildOnlyTheseTargets = try container.decode()
+        self.buildDescriptionID = try container.decode()
+        self.enableIndexBuildArena = try container.decode()
+        self.unknown = try container.decode()
+        self.useLegacyBuildLocations = try container.decode()
+        self.shouldCollectMetrics = try container.decode()
 
-        let targetsIndexPath = indexPath + IndexPath(index: 1)
-        let targetGUIDsArray = try args.parseArray(indexPath: targetsIndexPath)
-        self.configuredTargets = try targetGUIDsArray.enumerated().map { index, _ in
-            try targetGUIDsArray.parseObject(indexPath: targetsIndexPath + IndexPath(index: index))
-        }
-
-        self.continueBuildingAfterErrors = try args.parseBool(indexPath: indexPath + IndexPath(index: 2))
-        self.hideShellScriptEnvironment = try args.parseBool(indexPath: indexPath + IndexPath(index: 3))
-        self.useParallelTargets = try args.parseBool(indexPath: indexPath + IndexPath(index: 4))
-        self.useImplicitDependencies = try args.parseBool(indexPath: indexPath + IndexPath(index: 5))
-        self.useDryRun = try args.parseBool(indexPath: indexPath + IndexPath(index: 6))
-        self.showNonLoggedProgress = try args.parseBool(indexPath: indexPath + IndexPath(index: 7))
-        self.buildPlanDiagnosticsDirPath = try args.parseOptionalString(indexPath: indexPath + IndexPath(index: 8))
-        self.buildCommand = try args.parseObject(indexPath: indexPath + IndexPath(index: 9))
-        self.schemeCommand = try args.parseObject(indexPath: indexPath + IndexPath(index: 10))
-        self.buildOnlyTheseFiles = try args.parseUnknown(indexPath: indexPath + IndexPath(index: 11))
-        self.buildOnlyTheseTargets = try args.parseUnknown(indexPath: indexPath + IndexPath(index: 12))
-        self.buildDescriptionID = try args.parseUnknown(indexPath: indexPath + IndexPath(index: 13))
-        self.enableIndexBuildArena = try args.parseBool(indexPath: indexPath + IndexPath(index: 14))
-        self.unknown = try args.parseUnknown(indexPath: indexPath + IndexPath(index: 15))
-        self.useLegacyBuildLocations = try args.parseBool(indexPath: indexPath + IndexPath(index: 16))
-        self.shouldCollectMetrics = try args.parseBool(indexPath: indexPath + IndexPath(index: 17))
-
-        if let jsonRepresentationBase64String = try args.parseOptionalString(indexPath: indexPath + IndexPath(index: 18)) {
+        if let jsonRepresentationBase64String = try container.decode(String?.self) {
             guard let base64Data = Data(base64Encoded: jsonRepresentationBase64String),
                   let decodedString = String(data: base64Data, encoding: .utf8) else {
                 throw MessagePackUnpackError.invalidData
@@ -64,5 +58,7 @@ extension BuildRequest: DecodableRPCPayload {
         } else {
             self.jsonRepresentation = nil
         }
+        
+        try container.throwIfNotAtEnd()
     }
 }

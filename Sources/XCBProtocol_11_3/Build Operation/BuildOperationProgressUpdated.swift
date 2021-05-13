@@ -24,16 +24,7 @@ extension BuildOperationProgressUpdated: ResponsePayloadConvertible {
 
 // MARK: - Decoding
 
-extension BuildOperationProgressUpdated: DecodableRPCPayload {
-    public init(args: [MessagePackValue], indexPath: IndexPath) throws {
-        guard args.count == 4 else { throw RPCPayloadDecodingError.invalidCount(args.count, indexPath: indexPath) }
-        
-        self.targetName = try args.parseOptionalString(indexPath: indexPath + IndexPath(index: 0))
-        self.statusMessage = try args.parseString(indexPath: indexPath + IndexPath(index: 1))
-        self.percentComplete = try args.parseDouble(indexPath: indexPath + IndexPath(index: 2))
-        self.showInLog = try args.parseBool(indexPath: indexPath + IndexPath(index: 3))
-    }
-}
+extension BuildOperationProgressUpdated: Decodable {}
 
 // MARK: - Encoding
 
