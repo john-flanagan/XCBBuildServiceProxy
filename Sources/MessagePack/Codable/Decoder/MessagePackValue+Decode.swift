@@ -3,8 +3,8 @@ import Foundation
 extension MessagePackValue: Decodable {
     public init(from decoder: Decoder) throws {
         guard let messagePackDecoder = decoder as? _MessagePackDecoder else {
-            let description = "MessagePackValue only supports decoding via _MessagePackDecoder"
-            throw DecodingError.dataCorrupted(DecodingError.Context(codingPath: decoder.codingPath, debugDescription: description))
+            let message = "MessagePackValue only supports decoding via _MessagePackDecoder"
+            throw DecodingError.dataCorrupted(DecodingError.Context(codingPath: decoder.codingPath, debugDescription: message))
         }
         
         self = messagePackDecoder.value
@@ -49,8 +49,8 @@ extension MessagePackValue {
     }
 
     func decode(_ type: Int.Type, codingPath: [CodingKey]) throws -> Int {
-        let description = "Cannot decode type `Int`. Use `Int8`, `Int16`, `Int32`, or `Int64` instead."
-        throw DecodingError.dataCorrupted(DecodingError.Context(codingPath: codingPath, debugDescription: description))
+        let message = "Cannot decode type `Int`. Use `Int8`, `Int16`, `Int32`, or `Int64` instead."
+        throw DecodingError.dataCorrupted(DecodingError.Context(codingPath: codingPath, debugDescription: message))
     }
 
     func decode(_ type: Int8.Type, codingPath: [CodingKey]) throws -> Int8 {
@@ -82,8 +82,8 @@ extension MessagePackValue {
     }
 
     func decode(_ type: UInt.Type, codingPath: [CodingKey]) throws -> UInt {
-        let description = "Cannot decode type `UInt`. Use `UInt8`, `UInt16`, `UInt32`, or `UInt64` instead."
-        throw DecodingError.dataCorrupted(DecodingError.Context(codingPath: codingPath, debugDescription: description))
+        let message = "Cannot decode type `UInt`. Use `UInt8`, `UInt16`, `UInt32`, or `UInt64` instead."
+        throw DecodingError.dataCorrupted(DecodingError.Context(codingPath: codingPath, debugDescription: message))
     }
 
     func decode(_ type: UInt8.Type, codingPath: [CodingKey]) throws -> UInt8 {

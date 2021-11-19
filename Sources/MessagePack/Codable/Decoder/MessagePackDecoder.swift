@@ -10,7 +10,11 @@ public class MessagePackDecoder {
         
         return try decode(type, from: values)
     }
-    
+
+    public func decode<T: Decodable>(_ type: T.Type, from value: MessagePackValue) throws -> T {
+        return try _MessagePackDecoder(value: value, codingPath: []).decode(type)
+    }
+
     public func decode<T: Decodable>(_ type: T.Type, from values: [MessagePackValue]) throws -> T {
         return try _MessagePackDecoder(value: .array(values), codingPath: []).decode(type)
     }

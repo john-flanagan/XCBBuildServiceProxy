@@ -3,20 +3,57 @@ import Foundation
 struct MessagePackDecoderKeyedContainer<Key: CodingKey> {
     let codingPath: [CodingKey]
 
-    let content: [String: MessagePackValue]
-    
+    let content: Content
+
+    private let metadata: EnumMetadata
+
     init(value: MessagePackValue, codingPath: [CodingKey]) throws {
-        guard case .map(let dictionary) = value else {
-            throw DecodingError.typeMismatch(at: codingPath, expectation: [String: MessagePackValue].self, reality: value)
+        guard let metadata = EnumMetadata(Key.self) else {
+            let message = "\(Key.self) must be an enum to be used for MessagePack decoding."
+            throw DecodingError.dataCorrupted(.init(codingPath: codingPath, debugDescription: message))
         }
-        
+
+        self.metadata = metadata
         self.codingPath = codingPath
-        self.content = dictionary.reduce(into: [:]) { result, pair in
-            guard case .string(let key) = pair.key else { return }
-            result[key] = pair.value
+
+        switch value {
+        case .map(let dictionary):
+            self.content = .dictionary(dictionary)
+
+        case .array(let array):
+            guard metadata.caseCount == UInt32(array.count) else {
+                let message = "Payload contains \(array.count) values, but only \(metadata.caseCount) coding keys defined."
+                throw DecodingError.dataCorrupted(.init(codingPath: codingPath, debugDescription: message))
+            }
+
+            self.content = .array(array)
+
+        default:
+            let message = "Expected to decode .map or .array but found \(value.description) instead."
+            throw DecodingError.dataCorrupted(.init(codingPath: codingPath, debugDescription: message))
         }
     }
-    
+
+    /// Attempt to retrieve the value for a given key.
+    ///
+    /// This is implemented on `MessagePackDecoderKeyedContainer` instead of `Content` directly so there's easy access to
+    /// `metadata`.
+    ///
+    /// - Parameter key: The key used to lookup value.
+    /// - Returns: The value stored for the given key, if any.
+    private func content(forKey key: Key) -> MessagePackValue? {
+        switch content {
+        case .dictionary(let dictionary):
+            return dictionary[.string(key.stringValue)]
+
+        case .array(let array):
+            let tag = Int(metadata.tag(of: key))
+            guard tag < array.count else { return nil }
+
+            return array[tag]
+        }
+    }
+
     /// Attempt to transform the value for a given key using the provided transformation.
     ///
     /// - Parameters:
@@ -28,15 +65,43 @@ struct MessagePackDecoderKeyedContainer<Key: CodingKey> {
     /// - Throws: `DecodingError.keyNotFound` if there is no values for the key.
     private func mapValue<T>(forKey key: Key, transform: (_ value: MessagePackValue, _ codingPath: [CodingKey]) throws -> T) throws -> T {
         let newCodingPath = codingPath + [key]
-        
-        guard let value = content[key.stringValue] else {
-            throw DecodingError.keyNotFound(
-                key,
-                DecodingError.Context(codingPath: newCodingPath, debugDescription: "No value associated with key \(key.stringValue)).")
-            )
+
+        guard let value = content(forKey: key) else {
+            let message = "No value associated with key \(key.stringValue))."
+            throw DecodingError.keyNotFound(key, .init(codingPath: newCodingPath, debugDescription: message))
         }
         
         return try transform(value, newCodingPath)
+    }
+}
+
+extension MessagePackDecoderKeyedContainer {
+    enum Content {
+        case dictionary([MessagePackValue: MessagePackValue])
+        case array([MessagePackValue])
+
+        func keys() -> [Key] {
+            switch self {
+            case .dictionary(let dictionary):
+                return dictionary.keys.compactMap {
+                    guard case .string(let key) = $0 else { return nil }
+                    return Key(stringValue: key)
+                }
+
+            case .array(let array):
+                return (0 ..< array.count).compactMap(Key.init(intValue:))
+            }
+        }
+
+        var value: MessagePackValue {
+            switch self {
+            case .dictionary(let dictionary):
+                return .map(dictionary)
+
+            case .array(let array):
+                return .array(array)
+            }
+        }
     }
 }
 
@@ -44,11 +109,11 @@ struct MessagePackDecoderKeyedContainer<Key: CodingKey> {
 
 extension MessagePackDecoderKeyedContainer: KeyedDecodingContainerProtocol {
     var allKeys: [Key] {
-        content.keys.compactMap(Key.init(stringValue:))
+        content.keys()
     }
 
     func contains(_ key: Key) -> Bool {
-        content.keys.contains(key.stringValue)
+        content(forKey: key) != nil
     }
     
     func nestedContainer<NestedKey: CodingKey>(keyedBy type: NestedKey.Type, forKey key: Key) throws -> KeyedDecodingContainer<NestedKey> {
@@ -62,11 +127,7 @@ extension MessagePackDecoderKeyedContainer: KeyedDecodingContainerProtocol {
     }
     
     func superDecoder() throws -> Decoder {
-        let dictionary: [MessagePackValue: MessagePackValue] = content.reduce(into: [:]) { result, pair in
-            result[.string(pair.key)] = pair.value
-        }
-        
-        return _MessagePackDecoder(value: .map(dictionary), codingPath: codingPath + [MessagePackKey.super])
+        _MessagePackDecoder(value: content.value, codingPath: codingPath + [MessagePackKey.super])
     }
     
     func superDecoder(forKey key: Key) throws -> Decoder {
@@ -78,7 +139,7 @@ extension MessagePackDecoderKeyedContainer: KeyedDecodingContainerProtocol {
     // MARK: Decoding
     
     func decodeNil(forKey key: Key) throws -> Bool {
-        switch content[key.stringValue] {
+        switch content(forKey: key) {
         case .nil, .none: return true
         default: return false
         }
@@ -174,3 +235,68 @@ extension MessagePackDecoderKeyedContainer: KeyedDecodingContainerProtocol {
         }
     }
 }
+
+// MARK: - EnumMetadata
+
+// Derived from https://github.com/pointfreeco/swift-case-paths/blob/main/Sources/CasePaths/EnumReflection.swift
+private struct EnumMetadata {
+    let ptr: UnsafeRawPointer
+
+    init?(_ type: Any.Type) {
+        self.ptr = unsafeBitCast(type, to: UnsafeRawPointer.self)
+        guard self.ptr.load(as: MetadataKind.self) == .enumeration else { return nil }
+    }
+
+    var caseCount: UInt32 { typeDescriptor.emptyCaseCount + typeDescriptor.payloadCaseCount }
+
+    func tag<Enum>(of value: Enum) -> UInt32 {
+        withUnsafePointer(to: value) {
+            self.valueWitnessTable.getEnumTag($0, self.ptr)
+        }
+    }
+
+    private var typeDescriptor: EnumTypeDescriptor {
+        EnumTypeDescriptor(
+            ptr: self.ptr.load(fromByteOffset: pointerSize, as: UnsafeRawPointer.self)
+        )
+    }
+
+    private var valueWitnessTable: ValueWitnessTable {
+        ValueWitnessTable(
+            ptr: self.ptr.load(fromByteOffset: -pointerSize, as: UnsafeRawPointer.self)
+        )
+    }
+}
+
+private struct MetadataKind: Equatable {
+    var rawValue: UInt
+
+    // https://github.com/apple/swift/blob/main/include/swift/ABI/MetadataValues.h
+    // https://github.com/apple/swift/blob/main/include/swift/ABI/MetadataKind.def
+    static var enumeration: Self { .init(rawValue: 0x201) }
+}
+
+private struct EnumTypeDescriptor: Equatable {
+    let ptr: UnsafeRawPointer
+
+    var emptyCaseCount: UInt32 { self.ptr.load(fromByteOffset: 6 * 4, as: UInt32.self) }
+
+    var payloadCaseCount: UInt32 { self.ptr.load(fromByteOffset: 5 * 4, as: UInt32.self) & 0xFFFFFF }
+}
+
+private struct ValueWitnessTable {
+    let ptr: UnsafeRawPointer
+
+    var getEnumTag: @convention(c) (_ value: UnsafeRawPointer, _ metadata: UnsafeRawPointer) -> UInt32 {
+        self.ptr.advanced(by: 10 * pointerSize + 2 * 4).loadInferredType()
+    }
+}
+
+extension UnsafeRawPointer {
+    fileprivate func loadInferredType<Type>() -> Type {
+        self.load(as: Type.self)
+    }
+}
+
+// This is the size of any Unsafe*Pointer and also the size of Int and UInt.
+private let pointerSize = MemoryLayout<UnsafeRawPointer>.size
